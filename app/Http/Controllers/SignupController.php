@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\UserDetail;
+use Illuminate\Support\Facades\Auth;
 
 class SignupController extends Controller
 {
@@ -21,12 +22,12 @@ class SignupController extends Controller
 
         UserDetail::create($request->all());
 
-        return redirect()->back()->with('success', 'Signup Successful!');
+        return redirect()->back()->with('success', 'Signup Successful! Your account is pending approval.');
     }
 
     public function adminUsers()
     {
-        $users = UserDetail::all();
+        $users = UserDetail::latest()->get();
         return view('admin.users', compact('users'));
     }
 
@@ -54,6 +55,38 @@ class SignupController extends Controller
         $user->update($request->all());
 
         return redirect()->route('admin.users')->with('success', 'User Updated Successfully');
+    }
+
+    public function approve($id)
+    {
+        $user = UserDetail::findOrFail($id);
+        $user->update([
+            'status' => 'approved',
+            'approved_at' => now(),
+            'approved_by' => Auth::guard('admin')->id(),
+            'rejected_at' => null,
+            'rejection_reason' => null,
+        ]);
+
+        return redirect()->back()->with('success', 'User approved successfully!');
+    }
+
+    public function reject(Request $request, $id)
+    {
+        $request->validate([
+            'rejection_reason' => 'required|string|min:5|max:500',
+        ]);
+
+        $user = UserDetail::findOrFail($id);
+        $user->update([
+            'status' => 'rejected',
+            'rejection_reason' => $request->rejection_reason,
+            'rejected_at' => now(),
+            'approved_at' => null,
+            'approved_by' => null,
+        ]);
+
+        return redirect()->back()->with('success', 'User rejected successfully!');
     }
 
     public function delete($id)

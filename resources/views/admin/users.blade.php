@@ -543,6 +543,22 @@
                                                 <i class="fas fa-trash"></i> Delete
                                             </button>
                                         </form>
+                                        @if($user->status === 'pending')
+    <form action="{{ route('admin.users.approve', $user->id) }}" method="POST" style="display: inline;">
+        @csrf
+        <button type="submit" class="btn btn-sm btn-success">
+            <i class="fas fa-check"></i> Approve
+        </button>
+    </form>
+    
+    <button type="button" class="btn btn-sm btn-danger" onclick="showRejectModal({{ $user->id }})">
+        <i class="fas fa-times"></i> Reject
+    </button>
+@elseif($user->status === 'approved')
+    <span class="status-badge status-active">Approved</span>
+@elseif($user->status === 'rejected')
+    <span class="status-badge status-inactive">Rejected</span>
+@endif
                                     </div>
                                 </td>
                             </tr>
@@ -621,5 +637,60 @@
             });
         });
     </script>
+    <!-- Rejection Modal -->
+<div id="rejectModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 10px; padding: 2rem; width: 90%; max-width: 500px;">
+        <h3 style="margin-bottom: 1rem; color: var(--danger-color);">
+            <i class="fas fa-exclamation-triangle"></i> Reject User
+        </h3>
+        <p style="margin-bottom: 1.5rem; color: var(--gray-color);">
+            Please provide a reason for rejecting this user.
+        </p>
+        
+        <form id="rejectForm" method="POST">
+            @csrf
+            <div class="form-group">
+                <label>Rejection Reason:</label>
+                <textarea name="rejection_reason" class="form-control" rows="4" placeholder="Enter reason for rejection..." required></textarea>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-times"></i> Confirm Reject
+                </button>
+                <button type="button" onclick="hideRejectModal()" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let currentUserId = null;
+    
+    function showRejectModal(userId) {
+        currentUserId = userId;
+        const modal = document.getElementById('rejectModal');
+        const form = document.getElementById('rejectForm');
+        
+        form.action = `/admin/users/reject/${userId}`;
+        modal.style.display = 'flex';
+    }
+    
+    function hideRejectModal() {
+        const modal = document.getElementById('rejectModal');
+        modal.style.display = 'none';
+        document.getElementById('rejectForm').reset();
+        currentUserId = null;
+    }
+    
+    // Close modal when clicking outside
+    document.getElementById('rejectModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            hideRejectModal();
+        }
+    });
+</script>
 </body>
 </html>
