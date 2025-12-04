@@ -44,20 +44,17 @@ Route::prefix('admin')->group(function () {
     Route::get('/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
     Route::post('/login', [AdminAuthController::class, 'login'])->name('admin.login.post');
 
-    // Protected Admin Routes
-    Route::middleware(['admin'])->group(function () {
+    // Removed middleware - all routes are now accessible without authentication
+    Route::get('/dashboard', [AdminAuthController::class, 'dashboard'])->name('admin.dashboard');
+    Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
 
-        Route::get('/dashboard', [AdminAuthController::class, 'dashboard'])->name('admin.dashboard');
-        Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
+    Route::get('/users', [SignupController::class, 'adminUsers'])->name('admin.users');
+    Route::get('/users/show/{id}', [SignupController::class, 'show'])->name('admin.users.show');
+    Route::get('/users/edit/{id}', [SignupController::class, 'edit'])->name('admin.users.edit');
+    Route::post('/users/update/{id}', [SignupController::class, 'update'])->name('admin.users.update');
 
-        Route::get('/users', [SignupController::class, 'adminUsers'])->name('admin.users');
-        Route::get('/users/show/{id}', [SignupController::class, 'show'])->name('admin.users.show');
-        Route::get('/users/edit/{id}', [SignupController::class, 'edit'])->name('admin.users.edit');
-        Route::post('/users/update/{id}', [SignupController::class, 'update'])->name('admin.users.update');
+    Route::post('/users/approve/{id}', [SignupController::class, 'approve'])->name('admin.users.approve');
+    Route::post('/users/reject/{id}', [SignupController::class, 'reject'])->name('admin.users.reject');
 
-        Route::post('/users/approve/{id}', [SignupController::class, 'approve'])->name('admin.users.approve');
-        Route::post('/users/reject/{id}', [SignupController::class, 'reject'])->name('admin.users.reject');
-
-        Route::delete('/users/delete/{id}', [SignupController::class, 'delete'])->name('admin.users.delete');
-    });
+    Route::delete('/users/delete/{id}', [SignupController::class, 'delete'])->name('admin.users.delete');
 });
