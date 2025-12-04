@@ -10,6 +10,8 @@ class Admin extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    protected $guard = 'admin';
+
     protected $fillable = [
         'name',
         'email',
@@ -25,4 +27,10 @@ class Admin extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    // Relationship with approved users
+    public function approvedUsers()
+    {
+        return $this->hasMany(UserDetail::class, 'approved_by');
+    }
 }

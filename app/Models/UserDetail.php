@@ -16,9 +16,9 @@ class UserDetail extends Model
         'address',
         'status',
         'rejection_reason',
-        'approved_at',
         'approved_by',
-        'rejected_at',
+        'approved_at',
+        'rejected_at'
     ];
 
     protected $casts = [
@@ -26,20 +26,25 @@ class UserDetail extends Model
         'rejected_at' => 'datetime',
     ];
 
+    // Scope for pending users
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    // Scope for approved users
     public function scopeApproved($query)
     {
         return $query->where('status', 'approved');
     }
 
-    public function scopePending($query)
-    {
-        return $query->where('status', 'pending');
-    }
+    // Scope for rejected users
     public function scopeRejected($query)
     {
         return $query->where('status', 'rejected');
     }
 
+    // Relationship with admin who approved
     public function approvedBy()
     {
         return $this->belongsTo(Admin::class, 'approved_by');

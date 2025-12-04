@@ -11,26 +11,17 @@ class AdminAuthController extends Controller
 {
     public function showLoginForm()
     {
-        // If no admin exists, redirect to setup
-        if (Admin::count() === 0) {
-            return redirect('/setup-admin');
-        }
-        
         return view('admin.login');
     }
 
     public function login(Request $request)
     {
-        $request->validate([
+        $credentials = $request->validate([
             'email' => 'required|email',
             'password' => 'required',
         ]);
 
-        // Manual authentication to debug
-        $admin = Admin::where('email', $request->email)->first();
-        
-        if ($admin && Hash::check($request->password, $admin->password)) {
-            Auth::guard('admin')->login($admin, $request->remember);
+        if (Auth::guard('admin')->attempt($credentials, $request->remember)) {
             $request->session()->regenerate();
             return redirect()->route('admin.dashboard')->with('success', 'Login successful!');
         }
@@ -59,17 +50,17 @@ class AdminAuthController extends Controller
         return view('admin.dashboard', compact('totalUsers', 'pendingUsers', 'approvedUsers', 'rejectedUsers'));
     }
 
+    // Method to create default admin (run once)
     public function createDefaultAdmin()
     {
-        if (Admin::count() === 0) {
-            Admin::create([
+        $admin = Admin::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            [
                 'name' => 'Super Admin',
-                'email' => 'admin@example.com',
-                'password' => Hash::make('password123')
-            ]);
-            return redirect()->route('admin.login')->with('success', 'Default admin created! You can now login.');
-        }
-        
-        return redirect()->route('admin.login')->with('info', 'Admin already exists.');
+                'password' => Hash::make('password123'),
+            ]
+        );
+
+        return 'Default admin created!';
     }
 }
